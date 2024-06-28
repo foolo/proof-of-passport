@@ -11,7 +11,7 @@ https://github.com/jstasiak/python-zeroconf
 """
 
 import subprocess
-from zeroconf import ServiceBrowser, Zeroconf
+from zeroconf import ServiceBrowser, ServiceInfo, ServiceListener, Zeroconf
 
 
 TYPE = "_adb-tls-pairing._tcp.local."
@@ -23,19 +23,22 @@ CMD_SHOW = "qrencode -t UTF8 '%s'"
 CMD_PAIR = "adb pair %s:%s %s"
 CMD_DEVICES = "adb devices -l"
 
-class MyListener:
+class MyListener(ServiceListener):
 
-    def remove_service(self, zeroconf, type, name):
+    def remove_service(self, zc: Zeroconf, type_: str, name: str):
         print("Service %s removed." % name)
         print("Press enter to exit...\n")
 
-    def add_service(self, zeroconf, type, name):
-        info = zeroconf.get_service_info(type, name)
+    def add_service(self, zc: Zeroconf, type_: str, name: str):
+        info = zc.get_service_info(type_, name)
+        if info is None:
+            print("get_service_info failed")
+            return
         print("Service %s added." % name)
         print("service info: %s\n" % info)
         self.pair(info)
 
-    def pair(self, info):
+    def pair(self, info: ServiceInfo):
         cmd = CMD_PAIR % (info.server, info.port, PASS)
         print(cmd)
         subprocess.run(cmd, shell=True)
@@ -50,7 +53,7 @@ def main():
 
     zeroconf = Zeroconf()
     listener = MyListener()
-    browser = ServiceBrowser(zeroconf, TYPE, listener)
+    _browser = ServiceBrowser(zeroconf, TYPE, listener)
 
     try:
         input("Press enter to exit...\n\n")
