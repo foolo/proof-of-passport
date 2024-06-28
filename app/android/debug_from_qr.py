@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # https://gist.github.com/benigumocom/a6a87fc1cb690c3c4e3a7642ebf2be6f
-
 """
 Android11
 Pair and connect devices for wireless debug on terminal
@@ -13,9 +12,9 @@ https://github.com/jstasiak/python-zeroconf
 import subprocess
 from zeroconf import ServiceBrowser, ServiceInfo, ServiceListener, Zeroconf
 
-
 NAME = "debug"
 PAIRING_CODE = "123456"
+
 
 class MyListener(ServiceListener):
 
@@ -58,4 +57,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
