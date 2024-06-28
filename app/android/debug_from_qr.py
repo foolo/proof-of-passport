@@ -14,12 +14,8 @@ import subprocess
 from zeroconf import ServiceBrowser, ServiceInfo, ServiceListener, Zeroconf
 
 
-TYPE = "_adb-tls-pairing._tcp.local."
 NAME = "debug"
-PASS = "123456"
-
-CMD_PAIR = "adb pair %s:%s %s"
-CMD_DEVICES = "adb devices -l"
+PAIRING_CODE = "123456"
 
 class MyListener(ServiceListener):
 
@@ -37,13 +33,12 @@ class MyListener(ServiceListener):
         self.pair(info)
 
     def pair(self, info: ServiceInfo):
-        cmd = CMD_PAIR % (info.server, info.port, PASS)
-        print(cmd)
+        cmd = ["adb", "pair", f"{info.server}:{info.port}", PAIRING_CODE]
         subprocess.run(cmd, shell=True)
 
 
 def main():
-    text = f"WIFI:T:ADB;S:{NAME};P:{PASS};;"
+    text = f"WIFI:T:ADB;S:{NAME};P:{PAIRING_CODE};;"
     subprocess.run(["qrencode", "--type", "UTF8", text])
 
     print("Scan QR code to pair new devices.")
@@ -51,13 +46,14 @@ def main():
 
     zc = Zeroconf()
     listener = MyListener()
-    _browser = ServiceBrowser(zc, TYPE, listener)
+    service_type = "_adb-tls-pairing._tcp.local."
+    _browser = ServiceBrowser(zc, service_type, listener)
 
     try:
         input("Press enter to exit...\n\n")
     finally:
         zc.close()
-        subprocess.run(CMD_DEVICES, shell=True)
+        subprocess.run("adb devices -l", shell=True)
 
 
 if __name__ == '__main__':
